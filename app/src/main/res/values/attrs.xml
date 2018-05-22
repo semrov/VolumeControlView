@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="VolumeControlView">
+        <attr name="volume_scale" format="integer"  />
+        <attr name="current_sound_level" format="integer"/>
+        <attr name="background_color" format="color"/>
+        <attr name="level_color" format="color"/>
+    </declare-styleable>
+</resources>
