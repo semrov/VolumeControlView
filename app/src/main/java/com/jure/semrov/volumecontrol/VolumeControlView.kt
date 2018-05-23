@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.view.DragEvent
 import android.view.View
 
 /**
@@ -12,10 +13,10 @@ import android.view.View
  */
 class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,attrs)
 {
-    var volumeScale: Int = 10
+    var volumeScale: Int = 5
         set(scale) {if (scale < 5) field = 5 else if (scale > 20) field = 20 else field = scale}
-    var currentVolume: Int = 50
-        set(volume) { if (volume < 0) field = 0 else if (volume > 100) field = 100 else field = volume }
+    var currentVolume: Float = 50F
+        set(volume) { if (volume < 0) field = 0F else if (volume > 100F) field = 100F else field = volume }
 
     var backgroundPaint = Paint()
     var levelPaint = Paint()
@@ -31,7 +32,7 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         volumeScale = attributes.getInteger(R.styleable.VolumeControlView_volume_scale,10)
 
         // set current volume percentage to anything between 0 and 100
-        currentVolume = attributes.getInteger(R.styleable.VolumeControlView_current_sound_level,50)
+        currentVolume = attributes.getFloat(R.styleable.VolumeControlView_current_sound_level,55F)
 
         //set color of lines that shows current level of volume
         levelPaint.color = attributes.getColor(R.styleable.VolumeControlView_level_color, Color.BLUE)
@@ -40,7 +41,7 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         backgroundPaint.color = attributes.getColor(R.styleable.VolumeControlView_background_color, Color.GRAY)
 
         textPaint.color = Color.BLACK
-        textPaint.textSize = 30F;
+        //textPaint.textSize = 30F;
 
         // TypedArray objects are a shared resource and must be recycled after use
         attributes.recycle()
@@ -80,13 +81,22 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
     override fun onDraw(canvas: Canvas)
     {
         val tileHeight = height / (volumeScale * 2)
-        for (i in 0..(volumeScale-1))
+        val percentPerTile = 100.0F / volumeScale.toFloat()
+
+        for (i in volumeScale-1 downTo 0)
         {
             val top = (tileHeight*(i*2)).toFloat()
-            drawTile(0F,top, width.toFloat(), top + tileHeight,backgroundPaint,canvas)
+            val percentage = (volumeScale-i).toFloat() * percentPerTile
+            val paint = if (percentage <= currentVolume) {levelPaint} else {backgroundPaint}
+            drawTile(0F,top, width.toFloat(), top + tileHeight,paint,canvas)
         }
 
-        val y = (tileHeight * ((volumeScale * 2))).toFloat()
-        canvas.drawText("Volume set at: " + currentVolume + "%", (width / 4).toFloat(),y,textPaint)
+
+        val y = (tileHeight * ((volumeScale * 2))).toFloat() - tileHeight / 2
+        canvas.drawText("Volume set at: " + currentVolume.toInt() +  "%", (width / 4).toFloat(),y,textPaint)
+    }
+
+    override fun onDragEvent(event: DragEvent?): Boolean {
+        return super.onDragEvent(event)
     }
 }

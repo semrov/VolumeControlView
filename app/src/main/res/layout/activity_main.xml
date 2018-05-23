@@ -17,10 +17,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <EditText
+                android:id="@+id/et_volume"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:inputType="number"/>
 
             <Button
                 android:layout_width="0dp"
@@ -34,10 +36,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <EditText
+                android:id="@+id/et_lines"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:inputType="number"/>
 
             <Button
                 android:layout_width="0dp"
@@ -45,6 +49,7 @@
                 android:layout_weight="1"
                 android:text="SET LINES" />
         </LinearLayout>
+
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -57,7 +62,9 @@
             <com.jure.semrov.volumecontrol.VolumeControlView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                app:volume_scale="15"
                 />
+
         </FrameLayout>
 
     </LinearLayout>
