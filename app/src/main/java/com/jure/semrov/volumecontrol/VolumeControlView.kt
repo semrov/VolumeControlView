@@ -4,17 +4,22 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.Debug
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import kotlin.math.absoluteValue
 
 
 class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,attrs)
 {
+
+    interface OnVolumeChangeListener
+    {
+        fun onVolumeChange(volume : Int)
+    }
+
+    private var listener : OnVolumeChangeListener? = null
+
     private var volumeScale: Int = 5
         private set(scale) {if (scale < 5) field = 5 else if (scale > 20) field = 20 else field = scale}
     private var currentVolume: Float = 50F
@@ -49,10 +54,34 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         attributes.recycle()
     }
 
-    public fun setScale(scale : Int)
+    fun setScale(scale : Int) : Int
     {
         volumeScale = scale
         invalidate()
+        return volumeScale
+    }
+
+    fun getScale() : Int
+    {
+        return volumeScale
+    }
+
+    fun setCurrentVolume(volume : Int) : Int
+    {
+        currentVolume = volume.toFloat()
+        invalidate()
+        listener?.onVolumeChange(currentVolume.toInt())
+        return currentVolume.toInt()
+    }
+
+    fun get_current_volume() : Int
+    {
+        return currentVolume.toInt()
+    }
+
+    fun setOnVolumeChangeListener(l : OnVolumeChangeListener)
+    {
+        listener = l
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -80,12 +109,10 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         setMeasuredDimension(width,height)
     }
 
-
     private fun drawTile(left : Float, top : Float,right : Float,bottom : Float, paint : Paint, canvas: Canvas)
     {
         canvas.drawRect(left, top, right, bottom, paint)
     }
-
 
     override fun onDraw(canvas: Canvas)
     {
@@ -133,6 +160,7 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
             val y = event.y
             currentVolume = calculateVolumeFromEventPos(y)
             invalidate()
+            listener?.onVolumeChange(currentVolume.toInt())
             return true
         }
         return false
