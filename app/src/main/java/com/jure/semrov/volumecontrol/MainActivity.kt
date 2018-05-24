@@ -21,15 +21,25 @@ class MainActivity : AppCompatActivity(), VolumeControlView.OnVolumeChangeListen
         setVolume(volumeControl.get_current_volume())
 
         btn_volume.setOnClickListener{_ ->
-            var volume = et_volume.text.toString().toInt()
-            volume = volumeControl.setCurrentVolume(volume)
-            et_volume.setText(volume.toString())
+            var text = et_volume.text.toString()
+            try
+            {
+                var volume = text.toInt()
+                volume = volumeControl.setCurrentVolume(volume)
+                et_volume.setText(volume.toString())
+            }
+            catch (e : NumberFormatException){}
         }
 
         btn_lines.setOnClickListener{_ ->
-            var lines = et_lines.text.toString().toInt()
-            lines = volumeControl.setScale(lines)
-            et_lines.setText(lines.toString())
+            var text = et_lines.text.toString()
+            try {
+                var lines = text.toInt()
+                lines = volumeControl.setScale(lines)
+                et_lines.setText(lines.toString())
+            }
+            catch (e : NumberFormatException) {}
+
         }
 
         mediaPlayer = MediaPlayer.create(this,R.raw.braincandy)
