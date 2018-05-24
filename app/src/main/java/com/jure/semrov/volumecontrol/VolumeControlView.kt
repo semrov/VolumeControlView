@@ -4,23 +4,25 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Debug
 import android.util.AttributeSet
-import android.view.DragEvent
+import android.util.Log
+import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
+import kotlin.math.absoluteValue
 
-/**
- * Created by Jure on 22.5.2018.
- */
+
 class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,attrs)
 {
-    var volumeScale: Int = 5
-        set(scale) {if (scale < 5) field = 5 else if (scale > 20) field = 20 else field = scale}
-    var currentVolume: Float = 50F
-        set(volume) { if (volume < 0) field = 0F else if (volume > 100F) field = 100F else field = volume }
+    private var volumeScale: Int = 5
+        private set(scale) {if (scale < 5) field = 5 else if (scale > 20) field = 20 else field = scale}
+    private var currentVolume: Float = 50F
+        private set(volume) { if(volume < 0) field = 0F else if (volume > 100F) field = 100F else field = volume }
 
-    var backgroundPaint = Paint()
-    var levelPaint = Paint()
-    var textPaint = Paint()
+    private var backgroundPaint = Paint()
+    private var levelPaint = Paint()
+    private var textPaint = Paint()
 
     private val default_width = resources.getDimensionPixelSize(R.dimen.volume_control_default_width)
     private val default_height = resources.getDimensionPixelSize(R.dimen.volume_control_default_height)
@@ -32,7 +34,7 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         volumeScale = attributes.getInteger(R.styleable.VolumeControlView_volume_scale,10)
 
         // set current volume percentage to anything between 0 and 100
-        currentVolume = attributes.getFloat(R.styleable.VolumeControlView_current_sound_level,55F)
+        currentVolume = attributes.getFloat(R.styleable.VolumeControlView_current_sound_level,50F)
 
         //set color of lines that shows current level of volume
         levelPaint.color = attributes.getColor(R.styleable.VolumeControlView_level_color, Color.BLUE)
@@ -45,6 +47,12 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
 
         // TypedArray objects are a shared resource and must be recycled after use
         attributes.recycle()
+    }
+
+    public fun setScale(scale : Int)
+    {
+        volumeScale = scale
+        invalidate()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -69,18 +77,19 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
             View.MeasureSpec.UNSPECIFIED -> default_height
             else -> default_height
         }
-
         setMeasuredDimension(width,height)
     }
+
 
     private fun drawTile(left : Float, top : Float,right : Float,bottom : Float, paint : Paint, canvas: Canvas)
     {
         canvas.drawRect(left, top, right, bottom, paint)
     }
 
+
     override fun onDraw(canvas: Canvas)
     {
-        val tileHeight = height / (volumeScale * 2)
+        val tileHeight = height.toFloat() / (volumeScale * 2)
         val percentPerTile = 100.0F / volumeScale.toFloat()
 
         for (i in volumeScale-1 downTo 0)
@@ -91,12 +100,41 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
             drawTile(0F,top, width.toFloat(), top + tileHeight,paint,canvas)
         }
 
-
         val y = (tileHeight * ((volumeScale * 2))).toFloat() - tileHeight / 2
-        canvas.drawText("Volume set at: " + currentVolume.toInt() +  "%", (width / 4).toFloat(),y,textPaint)
+        canvas.drawText("Volume set at: ${currentVolume.toInt()}%", (width / 4).toFloat(),y,textPaint)
     }
 
-    override fun onDragEvent(event: DragEvent?): Boolean {
-        return super.onDragEvent(event)
+    private fun calculateVolumeFromEventPos(y : Float) : Float
+    {
+        val tileHeight = height.toFloat() / (volumeScale * 2)
+        val percentPerTile =  100.0F / volumeScale.toFloat()
+        val y = (y - height).absoluteValue
+
+        if(y <= height && y >= height-tileHeight)
+        {
+            return 100F
+        }
+        else if(y >= 0 && y <= tileHeight)
+        {
+            return 0F
+        }
+        else
+        {
+            val largeTileHeight = tileHeight*2
+            val y = y - tileHeight
+            val part =  (y / largeTileHeight).toInt() + 1
+            return part*percentPerTile
+        }
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent::ACTION_DOWN.get() || event.action == MotionEvent.ACTION_MOVE)
+        {
+            val y = event.y
+            currentVolume = calculateVolumeFromEventPos(y)
+            invalidate()
+            return true
+        }
+        return false
     }
 }
