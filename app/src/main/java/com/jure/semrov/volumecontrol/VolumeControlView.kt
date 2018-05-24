@@ -84,6 +84,18 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         listener = l
     }
 
+    fun setVolumeBackgroundColor(c : Int)
+    {
+        backgroundPaint.color = c
+        invalidate()
+    }
+
+    fun setVolumeLevelColor(c : Int)
+    {
+        levelPaint.color = c
+        invalidate()
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val widthMode = View.MeasureSpec.getMode(widthMeasureSpec)
         val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
