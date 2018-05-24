@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity(), VolumeControlView.OnVolumeChangeListen
 
     private fun setVolume(volume : Int)
     {
+        et_volume.setText(volume.toString())
         val volume = volume / 100F
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,(volume*maxVolume).toInt(),0)
