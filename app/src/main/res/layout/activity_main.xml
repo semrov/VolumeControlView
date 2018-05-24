@@ -25,6 +25,7 @@
                 android:inputType="number"/>
 
             <Button
+                android:id="@+id/btn_volume"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -44,6 +45,7 @@
                 android:inputType="number"/>
 
             <Button
+                android:id="@+id/btn_lines"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -61,6 +63,7 @@
             >
 
             <com.jure.semrov.volumecontrol.VolumeControlView
+                android:id="@+id/volumeControl"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:volume_scale="10"
