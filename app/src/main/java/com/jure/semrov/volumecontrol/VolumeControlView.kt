@@ -9,8 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import kotlin.math.absoluteValue
 
-
-class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,attrs)
+class VolumeControlView(context: Context, attrs: AttributeSet) : View(context,attrs)
 {
 
     interface OnVolumeChangeListener
@@ -18,7 +17,7 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         fun onVolumeChange(volume : Int)
     }
 
-    private var listener : OnVolumeChangeListener? = null
+    private var onVolumeChangeListener : OnVolumeChangeListener? = null
 
     private var volumeScale: Int = 5
         private set(scale) {if (scale < 5) field = 5 else if (scale > 20) field = 20 else field = scale}
@@ -70,18 +69,13 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
     {
         currentVolume = volume.toFloat()
         invalidate()
-        listener?.onVolumeChange(currentVolume.toInt())
+        onVolumeChangeListener?.onVolumeChange(currentVolume.toInt())
         return currentVolume.toInt()
     }
 
     fun get_current_volume() : Int
     {
         return currentVolume.toInt()
-    }
-
-    fun setOnVolumeChangeListener(l : OnVolumeChangeListener)
-    {
-        listener = l
     }
 
     fun setVolumeBackgroundColor(c : Int)
@@ -96,29 +90,26 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
         invalidate()
     }
 
+    fun setOnVolumeChangeListener(l : OnVolumeChangeListener)
+    {
+        onVolumeChangeListener = l
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val widthMode = View.MeasureSpec.getMode(widthMeasureSpec)
-        val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
+        val desiredWidth = suggestedMinimumWidth + paddingStart + paddingEnd
+        val desiredHeight = suggestedMinimumHeight + paddingTop + paddingBottom
 
-        val widthSize = View.MeasureSpec.getSize(widthMeasureSpec)
-        val heightSize = View.MeasureSpec.getSize(heightMeasureSpec)
+        setMeasuredDimension(resolveSize(desiredWidth,widthMeasureSpec), resolveSize(desiredHeight,heightMeasureSpec))
+    }
 
-        val width = when (widthMode)
-        {
-            View.MeasureSpec.EXACTLY -> widthSize
-            View.MeasureSpec.AT_MOST -> default_width
-            View.MeasureSpec.UNSPECIFIED -> default_width
-            else -> default_width
-        }
+    private fun getNetWidth() : Int
+    {
+        return width - paddingStart - paddingEnd
+    }
 
-        val height = when (heightMode)
-        {
-            View.MeasureSpec.EXACTLY -> heightSize
-            View.MeasureSpec.AT_MOST -> default_height
-            View.MeasureSpec.UNSPECIFIED -> default_height
-            else -> default_height
-        }
-        setMeasuredDimension(width,height)
+    private fun getNetHeight() : Int
+    {
+        return height - paddingTop - paddingBottom
     }
 
     private fun drawTile(left : Float, top : Float,right : Float,bottom : Float, paint : Paint, canvas: Canvas)
@@ -128,32 +119,32 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
 
     override fun onDraw(canvas: Canvas)
     {
-        val tileHeight = height.toFloat() / (volumeScale * 2)
+        val tileHeight = getNetHeight().toFloat() / (volumeScale * 2)
         val percentPerTile = 100.0F / volumeScale.toFloat()
 
         for (i in volumeScale-1 downTo 0)
         {
-            val top = (tileHeight*(i*2)).toFloat()
+            val top = tileHeight*(i*2) + paddingTop
             val percentage = (volumeScale-i).toFloat() * percentPerTile
             val paint = if (percentage <= currentVolume) {levelPaint} else {backgroundPaint}
-            drawTile(0F,top, width.toFloat(), top + tileHeight,paint,canvas)
+            drawTile( paddingStart.toFloat(),top, width.toFloat() - paddingEnd, top + tileHeight,paint,canvas)
         }
 
-        val y = (tileHeight * ((volumeScale * 2))).toFloat() - tileHeight / 2
-        canvas.drawText("Volume set at: ${currentVolume.toInt()}%", (width / 4).toFloat(),y,textPaint)
+        val y = (tileHeight * ((volumeScale * 2))).toFloat() - tileHeight / 2 + paddingTop
+        canvas.drawText("Volume set at: ${currentVolume.toInt()}%", (getNetWidth().toFloat()/3) + paddingStart,y,textPaint)
     }
 
     private fun calculateVolumeFromEventPos(y : Float) : Float
     {
-        val tileHeight = height.toFloat() / (volumeScale * 2)
+        val tileHeight = getNetHeight().toFloat() / (volumeScale * 2)
         val percentPerTile =  100.0F / volumeScale.toFloat()
-        val y = (y - height).absoluteValue
+        val y = (y - paddingBottom - getNetHeight()).absoluteValue
 
-        if(y <= height && y >= height-tileHeight)
+        if(y <= getNetHeight() && y >= getNetHeight()-tileHeight)
         {
             return 100F
         }
-        else if(y >= 0 && y <= tileHeight)
+        else if(y >= 0 && y <=  tileHeight)
         {
             return 0F
         }
@@ -169,11 +160,15 @@ class VolumeControlView(context: Context, attrs: AttributeSet?) : View(context,a
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent::ACTION_DOWN.get() || event.action == MotionEvent.ACTION_MOVE)
         {
+            val x = event.x;
             val y = event.y
-            currentVolume = calculateVolumeFromEventPos(y)
-            invalidate()
-            listener?.onVolumeChange(currentVolume.toInt())
-            return true
+            if(x > paddingStart && x < width - paddingEnd  && y > paddingTop && y < height - paddingBottom)
+            {
+                currentVolume = calculateVolumeFromEventPos(y)
+                invalidate()
+                onVolumeChangeListener?.onVolumeChange(currentVolume.toInt())
+                return true
+            }
         }
         return false
     }

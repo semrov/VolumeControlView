@@ -55,19 +55,17 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingBottom="30dp"
-            android:paddingEnd="75dp"
-            android:paddingStart="75dp"
-            android:paddingTop="30dp"
-            >
+            android:layout_height="match_parent">
 
             <com.jure.semrov.volumecontrol.VolumeControlView
                 android:id="@+id/volumeControl"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:volume_scale="10"
-                />
+                android:paddingBottom="30dp"
+                android:paddingLeft="75dp"
+                android:paddingRight="75dp"
+                android:paddingTop="30dp"
+                app:volume_scale="10" />
 
         </FrameLayout>
 
